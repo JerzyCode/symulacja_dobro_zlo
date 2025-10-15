@@ -58,8 +58,3 @@ $$
 \frac{dx}{dt} = x (\pi_C - \bar{\pi})
 $$
 
-### Rozwiązanie
-
-$$
--(R - S - t + P)x^2 + (R - 2S - t + 2P)x + (S - P) = 0
-$$
