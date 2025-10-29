@@ -5,9 +5,9 @@
 
 Do wygenerowanie tesktu skorzystaliśmy z modelu Gemini na platformie Google AI Studio, gdzie mieliśmy możliwość kontrolowanie parametru temperatury.
 
-Parametr temepratury został ustawiony na wartość 1 (niska kreatywność modelu). W celu otrzymania poprawnej długości tekstu skorzystaliśmy z `system instructions` z myślą, że nie będzie miało to wpływu na `seeda`.
+Parametr temepratury został ustawiony na wartość 0 (niska kreatywność modelu). W celu otrzymania poprawnej długości tekstu skorzystaliśmy z `system instructions` z myślą, że nie będzie miało to wpływu na `seeda`.
 
-Ostatnim krokiem były ustawienie metody doboru kolejnych tokenów podczas procesu generowanie tekstu. Tutaj ustawiliśmy, `Top P` (Probability threshold for top-p sampling) - na wartość 1. Znacząco zredukowało to losowość generowania tesktu.
+Ostatnim krokiem były ustawienie metody doboru kolejnych tokenów podczas procesu generowanie tekstu. Tutaj ustawiliśmy, `Top P` (Probability threshold for top-p sampling) - na wartość 0. Znacząco zredukowało to losowość generowania tesktu.
 
 ## Seedy:
 
@@ -16,7 +16,7 @@ Ostatnim krokiem były ustawienie metody doboru kolejnych tokenów podczas proce
 **seed_b**: `Wygeneruj krótką i wesołą historię o przygodach kotka`
 
 
-Warto zwrocić uwagę, że różnice między zapytaniami są nieznaczne. 
+Warto zwrocić uwagę, że różnice między zapytaniami są nieznaczne. Róznica polega na zdrobnieniu słowa 'kota' na 'kotka'.
 
 
 ## Odpowiedzi
@@ -250,18 +250,33 @@ Zwinął się w kłębek na miękkim dywanie, a w jego snach tańczyły tęczowe
 
 ![alt text](levenstein1.png)
 
-Odległość Levenstein'a w tym wypadku nie jest najlepszym pomysłem. Na wykresie zaprezentowana jest prosta `y=x`, co wydaje się naturalnym wynikiem dla kompletnie różnych odpowiedzi. 
+W tym przypadku wykorzystanie odległości Levenshteina nie jest optymalnym rozwiązaniem. Na wykresie widać linię `y = x`, co sugeruje brak korelacji między porównywanymi odpowiedziami — efekt naturalny przy zupełnie różnych danych wejściowych.
 
-Lepszą metryką odległości było by `cosine_similarity`.
+Lepszą alternatywą mogłaby być metryka cosine_similarity, która ocenia podobieństwo wektorów w przestrzeni semantycznej, a nie jedynie różnice w kolejności znaków. Dzięki temu można uzyskać bardziej miarodajne wyniki, zwłaszcza gdy interesuje nas znaczenie tekstu, a nie jego dosłowna forma.
+
+Dodatkowo warto rozważyć normalizację wektorów lub zastosowanie embeddingów z modelu językowego, co pozwoli uchwycić subtelne podobieństwa semantyczne między odpowiedziami.
 
 ## Wykładnik Lapunowa
 
 ![alt text](lapunow.png)
 
-Wykładnik Lapunowa zarówno zwykły jak i znormalizowany maleją do zera. Może to świadczyć o tym, że chaos maleje. Jest to spodziewane zachowanie ponieważ, odelgłość jest stale rozbieżna między odpowiedziami.
-
+Na wykresie przedstawiono efektywny i znormalizowany wykładnik Łapunowa w zależności od długości sekwencji.
+Widać, że oba wykładniki maleją w kierunku zera. Taki trend sugeruje stopniowe zmniejszanie się chaosu w systemie, co jest zgodne z oczekiwaniami - ponieważ rozbieżność między odpowiedziami utrzymuje się na stałym poziomie, efektywna dynamika systemu stabilizuje się wraz ze wzrostem długości prefiksu.
 
 ## Porównanie mapy logistycznej z modelem językowym
+
+
+### Analogia
+
+| **Odwzorowanie logistyczne**                          | **Generacja tekstu (LLM)**                                           | **Uwagi / Metafora chaosu**                                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| (x_n) – obecny stan                                   | (x_n) – bieżąca reprezentacja semantyczna kontekstu                  | Reprezentacja „trajektorii” w przestrzeni semantycznej                                          |
+| (x\_{n+1} = r x_n (1 - x_n)) – reguła iteracyjna      | Generacja kolejnego tokenu na podstawie kontekstu i parametrów       | Funkcja deterministyczna + losowość parametrów (temperature, top-p)                             |
+| (r) – parametr sterujący dynamiką                     | top-p / siła promptu                                                 | Większe (r) → większa wrażliwość na seed; wyższa temperatura → większa „chaotyczność” generacji |
+| Iteracja (x*n \to x*{n+1})                            | Iteracja (x*n \to x*{n+1}) przy generowaniu tokenu                   | Każdy nowy token to krok w trajektorii tekstowej                                                |
+| Odległość między trajektoriami przy małej perturbacji | Levenshtein distance d(k) między tekstami z minimalnie różnym seedem | Wzrost rozbieżności → analogia do dodatniego wykładnika Lapunowa                                |
+| Stabilny punkt / atraktor                             | Stały motyw / powtarzalny styl w generowanym tekście                 | Mała wrażliwość na seed, trajektoria pozostaje blisko siebie                                    |
+| Chaotyczny reżim                                      | Szybkie „rozbieganie się” tekstów przy minimalnej zmianie seeda      | λ_eff > 0, ekspansja semantyczna, trudna przewidywalność                                        |
 
 
 
@@ -273,6 +288,8 @@ Można zauważyć różnice jak ten chaos powienien wyglądać. Dla modelu jęż
 
 ## Wnioski
 
-- Modele językowe są z reguły probabilistyczne, pomimo dodania do zapytania "ka" uzysakne zostały całkowicie inne wyniki, niezależnie od tego czy parametr `top-k` został ustawione na `1` czy na `0.7`.
+- Już niewielkie zmiany w treści zapytania (np. zdrobnienie słowa „kota” na „kotka”) prowadzą do znacznie różniących się odpowiedzi, nawet przy identycznych ustawieniach parametrów generowania. Świadczy to o wysokiej wrażliwości modeli językowych na drobne perturbacje w seedzie, co należy uwzględniać przy eksperymentach wymagających powtarzalności wyników.
 
-- Odległość levenstein'a jest nieprawidłową metryką do tego typu zadania. Dla tego typu powinna zostać użyta metryka `cosine_similarity`.
+- Warto rozważyć użycie mniejszego modelu do tego eksperymentu, ponieważ jest on prostszy i bardziej przewidywalny.
+
+- Odległość Levenshteina nie jest odpowiednią metryką dla tego typu zadań. W przypadku wygenerowanych słów lub tokenów lepiej jest najpierw uzyskać ich reprezentacje wektorowe za pomocą modelu do embeddowania, a następnie obliczyć cosine_similarity. Metryka Levenshteina ocenia jedynie podobieństwo w zapisie słów, więc wyrazy o zbliżonym znaczeniu mogą zostać uznane za odległe, jeśli różnią się brzmieniem.
