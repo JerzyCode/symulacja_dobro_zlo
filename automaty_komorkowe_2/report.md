@@ -1,4 +1,6 @@
-# Raport: Symulacja Chaosu Czasowo-Przestrzennego w Ciągłych Automatach Komórkowych
+## Raport: Symulacja Chaosu Czasowo-Przestrzennego w Ciągłych Automatach Komórkowych
+
+Autorzy: Bartosz Gacek, Jerzy Boksa
 
 ## 1. Wstęp
 
@@ -13,10 +15,11 @@ Podstawą symulacji jest odwzorowanie logistyczne, które dla pojedynczej popula
 $$ f(x) = r \cdot x \cdot (1 - x) $$
 
 gdzie:
+
 - $x$ - gęstość populacji ($x \in [0, 1]$)
 - $r$ - parametr wzrostu (parametr kontrolny chaosu)
 
-Dla siatki 2D o wymiarach $N \times N$, stan komórki w pozycji $(i, j)$ w chwili $n+1$ zależy od jej stanu w chwili $n$ oraz stanów jej sąsiadów. 
+Dla siatki 2D o wymiarach $N \times N$, stan komórki w pozycji $(i, j)$ w chwili $n+1$ zależy od jej stanu w chwili $n$ oraz stanów jej sąsiadów.
 
 ## 3. Implementacja
 
@@ -29,13 +32,12 @@ Symulacja została zaimplementowana w języku Python z wykorzystaniem biblioteki
 Przeprowadzono symulację dla $r=3.8$ (pełny chaos) i $\epsilon=0.3$.
 Zaobserwowano, że mimo iż każda komórka dąży do zachowania chaotycznego, sprzężenie z sąsiadami powoduje powstawanie krótkotrwałych struktur przestrzennych o zbliżonych wartościach. Układ nie jest jednorodny, ale wykazuje dynamiczną zmienność w czasie i przestrzeni – jest to istota chaosu czasowo-przestrzennego.
 
-
 ![Ewolucja czasowo-przestrzenna](spatial_evolution.png)
-
 
 ### 4.2. Diagram Bifurkacyjny
 
 Zbadano zachowanie układu w zależności od parametru $r$. Wykres bifurkacyjny pokazuje, jak zmieniają się możliwe stany populacji w stanie ustalonym (lub po wielu iteracjach) w funkcji $r$.
+
 - Dla $r < 3.0$ populacja stabilizuje się w punkcie stałym.
 - Dla $3.0 < r < 3.57$ obserwujemy podwajanie okresu (kaskada bifurkacji).
 - Dla $r > 3.57$ pojawia się chaos.
@@ -48,6 +50,7 @@ W układzie przestrzennym diagram ten jest "rozmyty" w porównaniu do pojedyncze
 ### 4.3. Synchronizacja
 
 Zbadano wpływ siły sprzężenia $\epsilon$ na synchronizację układu.
+
 - **Małe $\epsilon$ (słabe sprzężenie):** Komórki zachowują się niemal niezależnie, dominuje chaos lokalny. Obraz siatki przypomina szum ("śnieżenie").
 - **Duże $\epsilon$ (silne sprzężenie):** Sąsiedzi silnie wpływają na siebie, co prowadzi do synchronizacji fazowej lub powstawania dużych domen o zgodnej fazie. W skrajnym przypadku (bardzo duże $\epsilon$) cały układ może dążyć do jednorodnego stanu, mimo chaotycznej natury lokalnej funkcji $f(x)$.
 
@@ -67,12 +70,14 @@ Prowadzi to do szybszej synchronizacji globalnej lub (w zależności od parametr
 
 **Dlaczego obserwujemy takie zachowanie systemu?**
 Zachowanie systemu wynika z konkurencji dwóch procesów:
+
 1.  **Lokalna niestabilność (Chaos):** Odwzorowanie logistyczne dla dużych $r$ (np. $r=3.8$) powoduje wykładnicze. To źródło nieporządku.
 2.  **Dyfuzja (Sprzężenie):** Człon $\epsilon$ dąży do wyrównania różnic między sąsiadami, wprowadzając korelację przestrzenną.
 
 Równowaga między tymi siłami tworzy skomplikowane wzory czasowo-przestrzenne.
 
 **Czynniki decydujące o chaosie:**
+
 - **Nieliniowość:** Funkcja logistyczna jest nieliniowa ($x^2$), co jest warunkiem koniecznym chaosu.
 - **Parametr $r$:** Steruje stromością paraboli logistycznej, a tym samym "siłą" nieliniowości i chaotyczności.
 - **Wymiarowość:** Układ ma ogromną liczbę stopni swobody ($N \times N$).
