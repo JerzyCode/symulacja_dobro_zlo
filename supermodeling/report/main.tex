@@ -1,0 +1,136 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{caption}
+
+\usepackage[
+  paper=a4paper,
+  left=20mm,
+  right=20mm,
+  top=20mm,
+  bottom=25mm
+]{geometry}
+\title{Laboratorium 5: Supermodeling}
+\author{Bartosz Gacek \and Jerzy Boksa}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Wstęp}
+Celem laboratorium było zbadanie efektywności podejścia supermodelingu w porównaniu z tradycyjnymi modelami surrogatowymi. Supermodeling to technika łącząca wiele niedoskonałych modeli poprzez ich sprzężenie (coupling), co w założeniu ma prowadzić do lepszych predykcji niż pojedyncze modele działające osobno.
+
+W ramach eksperymentu zrealizowano następujące kroki:
+\begin{enumerate}
+    \item Stworzono model \textbf{Baseline} (pełny model Lotki--Volterry), który służył jako "ground truth".
+    \item Wytrenowano \textbf{Surrogate 1} -- model uproszczony, trenowany z pełną asymilacją danych (ABC--SMC).
+    \item Przygotowano \textbf{Surrogates 2, 3, 4} -- trzy modele uproszczone, trenowane w bardzo krótkim czasie.
+    \item Zbudowano \textbf{Supermodel} łączący modele 2, 3 i 4.
+\end{enumerate}
+
+Zgodnie z wymaganiami zadania, suma czasu treningu modeli 2, 3, 4 oraz supermodelu nie mogła przekraczać czasu treningu modelu Surrogate 1. W naszej implementacji warunek ten został spełniony:
+\begin{itemize}
+    \item Surrogate 1: 4000 ewaluacji
+    \item Pozostałe modele łącznie: 3850 ewaluacji (100 + 3750)
+\end{itemize}
+
+\section{Metodologia}
+\subsection{Model Baseline}
+Jako model odniesienia wykorzystano równania Lotki--Volterry z 4 parametrami:
+\begin{equation}
+    \begin{cases}
+        \displaystyle \frac{dx}{dt} = \alpha x - \beta x y, \\[6pt]
+        \displaystyle \frac{dy}{dt} = \delta x y - \gamma y.
+    \end{cases}
+\end{equation}
+Przyjęte parametry: \(\alpha = 1.0\), \(\beta = 0.1\), \(\gamma = 1.5\), \(\delta = 0.075\). Stan początkowy: \(x_0 = 10\), \(y_0 = 5\).
+
+\subsection{Modele surrogatowe}
+Modele te są uproszczoną wersją zredukowaną do 2 parametrów \((a, b)\), przy założeniu symetrii parametrów (a odpowiada za wzrost/zanik, b za interakcję).
+
+\subsection{Dane i asymilacja}
+Obserwacje generowano w przedziale \(t\in[0,20]\) z dodanym szumem gaussowskim (\(\sigma=0.5\)). Testowanie odbywało się na przedziale \(t\in(20,30]\).
+
+Do estymacji parametrów użyto algorytmu ABC (Approximate Bayesian Computation):
+\begin{itemize}
+    \item \textbf{Surrogate 1}: pełny trening (20 populacji po 200 cząstek),
+    \item \textbf{Modele 2--4}: skrócony pretrening (1 populacja, 100 cząstek), wybrano 3 najlepsze wyniki,
+    \item \textbf{Supermodel}: trening współczynników sprzężenia (15 populacji, 250 cząstek).
+\end{itemize}
+
+\section{Wyniki}
+\subsection{Trajektorie}
+Poniższy wykres przedstawia przebiegi populacji dla wszystkich modeli.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{.././results/trajectories.png}
+    \caption{Trajektorie wszystkich modeli}
+\end{figure}
+
+Zaobserwowano:
+\begin{itemize}
+    \item \textbf{Baseline} (czarny) wykazuje wyraźne oscylacje,
+    \item \textbf{Surrogate 1} (niebieski) dobrze pokrywa się z danymi treningowymi, ale w fazie testowej jego amplituda maleje — możliwa słabsza generalizacja,
+    \item \textbf{Surrogate 2} (zielony) mimo krótkiego treningu radzi sobie bardzo dobrze w obu przedziałach,
+    \item \textbf{Surrogate 3 i 4} praktycznie straciły charakter oscylacyjny,
+    \item \textbf{Supermodel} (cyjan) wypada średnio — próbuje skorygować błędy modeli 3 i 4, jednak nie osiąga jakości modelu 2.
+\end{itemize}
+
+\subsection{Błędy predykcji (MSE)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{.././results/prediction_errors.png}
+    \caption{Porównanie błędów predykcji}
+\end{figure}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{lrr}
+        \toprule
+        Model       & Training MSE & Test MSE \\
+        \midrule
+        Surrogate 1 & 59.57        & 188.87   \\
+        Surrogate 2 & 192.24       & 88.74    \\
+        Surrogate 3 & 224.04       & 189.02   \\
+        Surrogate 4 & 285.23       & 275.01   \\
+        Supermodel  & 218.17       & 181.68   \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tabela błędów średniokwadratowych}
+\end{table}
+
+Najlepszy wynik na zbiorze testowym osiągnął Surrogate 2 (88.74). Supermodel zajął drugie miejsce (181.68), poprawiając wyniki modeli 3 i 4, ale nie dorównując modelowi 2. Surrogate 1 mimo najmniejszego błędu na zbiorze treningowym, na teście wypadł gorzej od supermodelu.
+
+\subsection{Parametry}
+Analiza parametrów pokazuje, że Surrogate 2 miał wartości najbardziej zbliżone do wartości referencyjnych, natomiast pozostałe modele bardziej od nich odbiegały.
+
+\section{Dyskusja}
+Supermodel skutecznie poprawił wyniki względem najsłabszych modeli składowych (Surrogate 3 i 4). Zredukował błąd modelu 4 z 275.01 do 181.68. Nie udało mu się jednak pobić najlepszego z grupy — Surrogate 2. Wynika to z natury uśredniania: supermodel podnosi słabe modele, ale może nieznacznie pogorszyć najlepszy model przez wpływ słabszych składowych.
+
+Zaskakującym wynikiem jest fakt, że w pełni trenowany Surrogate 1 poradził sobie gorzej na zbiorze testowym niż "szybki" Surrogate 2 — wskazuje to na overfitting. Budżet czasowy został wykorzystany efektywnie; Surrogate 2 pokazał, że krótki trening (przy sprzyjającym losowaniu początkowym) może dać lepsze rezultaty niż długotrwała asymilacja niosąca ryzyko przeuczenia.
+
+W praktyce supermodel daje większą stabilność: zamiast ryzykować trafienie na jeden słaby szybki model, supermodel daje uśredniony, bezpieczniejszy wynik.
+
+\section{Wnioski}
+\begin{enumerate}
+    \item Supermodeling pozwala poprawić jakość predykcji w porównaniu do słabych modeli składowych i zwiększa stabilność rozwiązania.
+    \item Warunek czasowy zadania został spełniony (suma ewaluacji supermodelu mniejsza od modelu referencyjnego).
+    \item Dłuższy trening nie zawsze oznacza lepsze wyniki na zbiorze testowym (przykład Surrogate 1 — overfitting).
+    \item Supermodel wygrał z modelem Surrogate 1 pod względem błędu testowego, co potwierdza sensowność tej metody w warunkach niepewności i ograniczonych danych.
+\end{enumerate}
+
+\section{Wkład modelu językowego}
+W trakcie prac korzystaliśmy z modeli językowych GPT oraz Gemini jako narzędzi wspomagających przy następujących zadaniach:
+\begin{itemize}
+    \item wybór i sformułowanie równania Lotki--Volterry,
+    \item wsparcie implementacji i debugowania kodu,
+    \item sugestie wartości początkowych parametrów dla modelu baseline,
+    \item korekta językowa, ortograficzna i stylistyczna treści raportu.
+\end{itemize}
+
+\end{document}

@@ -99,3 +99,13 @@ W kontekście praktycznym, supermodel daje większą stabilność. Wybierając l
 2. Warunek czasowy zadania został spełniony (suma ewaluacji supermodelu mniejsza od modelu referencyjnego).
 3. Dłuższy trening nie zawsze oznacza lepsze wyniki na zbiorze testowym, co pokazał przykład Surrogate 1 (problem overfittingu).
 4. Supermodel wygrał z modelem Surrogate 1 pod względem błędu testowego, co potwierdza sensowność tej metody w warunkach niepewności i ograniczonych danych.
+
+
+## 6. Wkład Modelu Językowego
+
+W trakcie prac korzystaliśmy z modeli językowych GPT oraz Gemini jako narzędzi wspomagających przy następujących zadaniach:
+- wybór i sformułowanie równania Lotki–Volterry,
+- wsparcie implementacji i debugowania kodu,
+- sugestie wartości początkowych parametrów dla modelu baseline,
+- korekta językowa, ortograficzna i stylistyczna treści raportu.
+
