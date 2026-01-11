@@ -56,12 +56,10 @@ Poniższy wykres przedstawia przebiegi populacji dla wszystkich modeli.
 ![Trajektorie wszystkich modeli](./results/trajectories.png)
 
 Można zauważyć, że:
-
-- **Baseline** (czarny) wykazuje wyraźne oscylacje.
-- **Surrogate 1** (niebieski) dobrze pokrywa się z danymi treningowymi, ale w fazie testowej jego amplituda maleje, co sugeruje słabszą generalizację.
-- **Surrogate 2** (zielony) mimo krótkiego treningu radzi sobie bardzo dobrze w obu przedziałach.
-- **Surrogate 3 i 4** praktycznie straciły charakter oscylacyjny.
-- **Supermodel** (cyjan) wypada średnio - próbuje "naprawić" błędy modeli 3 i 4, ale przez to nie osiąga jakości modelu 2.
+- **Baseline** (czarny) charakteryzuje się wyraźnymi, regularnymi oscylacjami populacji, zgodnie z teoretycznym przebiegiem modelu Lotki-Volterry.
+- **Surrogate 1** (niebieski) w zakresie populacji ofiary wykazuje wysoką zgodność z modelem referencyjnym do 20. kroku czasowego, odpowiadającego okresowi treningu. Po tym punkcie widoczne jest stopniowe narastanie rozbieżności. W przypadku populacji drapieżnika, model ten generuje oscylacje o większej amplitudzie niż baseline, jednak do 20. kroku czasowego fazy oscylacji pozostają zbliżone.
+- **Surrogate 2, 3, 4** – Wszystkie modele trenowane w ograniczonym czasie wykazują znaczące odstępstwa od baseline'u zarówno pod względem wartości, jak i częstotliwości oscylacji. Wynik ten jest zgodny z oczekiwaniami, biorąc pod uwagę skrócony proces treningowy.
+- **Supermodel** (cyjan), pomimo integracji kilku krótko trenowanych modeli, osiąga słabe rezultaty, w niektórych przypadkach gorsze niż Surrogate 2. Może to wynikać z mechanizmu kompensacji błędów poszczególnych modeli składowych. Dodatkowo, ze względu na cykliczny charakter trajektorii, proces uśredniania w supermodelu prowadzi do częściowego wygaszenia oscylacji.
 
 ### 3.2. Błędy predykcji (MSE)
 
